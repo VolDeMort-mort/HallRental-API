@@ -10,13 +10,14 @@ public class Hall
     public string Name { get; private set; } = string.Empty;
     public int Capacity { get; private set; }
     public decimal PricePerHour { get; private set; }
+    public bool IsActive { get; private set; }
     public IReadOnlyCollection<Service> Services => _services.AsReadOnly();
 
     private Hall(){}
 
     public static Hall Create(string name, int capacity, decimal pricePerHour)
     {
-        var hall = new Hall {Id = Guid.NewGuid() };
+        var hall = new Hall {Id = Guid.NewGuid(), IsActive = true };
         hall.Rename(name);
         hall.ChangeCapacity(capacity);
         hall.ChangePrice(pricePerHour);
@@ -42,6 +43,15 @@ public class Hall
         if (price <= 0)
             throw new DomainException("Hall price per hour has to be greater than 0");
         PricePerHour = price;
+    }
+
+    /// <summary>
+    /// Soft delete: the hall disappears from search and can't be booked any more,
+    /// but its past bookings stay, so the history and revenue reports remain correct.
+    /// </summary>
+    public void Deactivate()
+    {
+        IsActive = false;
     }
 
     public void AddService(Service service)

@@ -43,6 +43,9 @@ public class Booking
         PricingPolicy pricing,
         DateTime now)
     {
+        if (!hall.IsActive)
+            throw new DomainException("A deleted hall can't be booked");
+
         EnsureNotInPast(period, now);
 
         var booking = new Booking
