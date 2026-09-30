@@ -4,6 +4,9 @@ namespace HallRental.Domain.Entities;
 
 public class Hall
 {
+    /// <summary>Shared by the domain check, the request validators and the database column.</summary>
+    public const int MaxNameLength = 100;
+
     private readonly List<Service> _services = new();
 
     public Guid Id { get; private set; }
@@ -28,6 +31,8 @@ public class Hall
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Hall name cant be empty");
+        if (name.Trim().Length > MaxNameLength)
+            throw new DomainException($"Hall name can't be longer than {MaxNameLength} characters");
         Name = name.Trim();
     }
 
