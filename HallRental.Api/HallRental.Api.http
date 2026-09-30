@@ -1,6 +1,117 @@
-@HallRental.Api_HostAddress = http://localhost:5112
+# The whole assignment in one run: execute the requests top to bottom.
+# Later requests take ids from earlier responses ({{name.response.body...}}, Visual Studio 17.12+).
+# Every run creates new halls, so the scenario can be repeated on the same database.
 
-GET {{HallRental.Api_HostAddress}}/weatherforecast/
-Accept: application/json
+@host = http://localhost:5112
+@day = 2030-09-01
 
-###
+### 1. Add a hall with services (assignment 1)
+# @name createHall
+POST {{host}}/api/halls
+Content-Type: application/json
+
+{
+  "name": "Зал D",
+  "capacity": 40,
+  "pricePerHour": 1800,
+  "services": [
+    { "name": "Проєктор", "price": 500 },
+    { "name": "Wi-Fi", "price": 300 }
+  ]
+}
+
+### 2. The new hall with the ids of its services
+# @name hall
+GET {{host}}/api/halls/{{createHall.response.body.$.id}}
+
+### 3. Change the price 1800 -> 2500 (assignment 2)
+PUT {{host}}/api/halls/{{createHall.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "name": "Зал D",
+  "capacity": 40,
+  "pricePerHour": 2500
+}
+
+### 4. Add the "Звук" service for 700 (assignment 2)
+POST {{host}}/api/halls/{{createHall.response.body.$.id}}/services
+Content-Type: application/json
+
+{
+  "name": "Звук",
+  "price": 700
+}
+
+### 5. Free halls for 40 people, 10:00-14:00 (assignment 4)
+GET {{host}}/api/halls/available?start={{day}}T10:00:00&end={{day}}T14:00:00&minCapacity=40
+
+### 6. Book the new hall 10:00-14:00 with Wi-Fi (assignment 5)
+# Rent: 2 h x 2500 + 2 h x 2875 (peak +15%) = 10750, Wi-Fi 300, total 11050
+# @name booking
+POST {{host}}/api/bookings
+Content-Type: application/json
+
+{
+  "hallId": "{{createHall.response.body.$.id}}",
+  "start": "{{day}}T10:00:00",
+  "duration": "04:00:00",
+  "serviceIds": [ "{{hall.response.body.$.services[0].id}}" ]
+}
+
+### 7. The same hall at 11:00 -> 409, it is already booked
+POST {{host}}/api/bookings
+Content-Type: application/json
+
+{
+  "hallId": "{{createHall.response.body.$.id}}",
+  "start": "{{day}}T11:00:00",
+  "duration": "02:00:00",
+  "serviceIds": []
+}
+
+### 8. The booking confirmation again
+GET {{host}}/api/bookings/{{booking.response.body.$.id}}
+
+### 9. Delete the hall -> 409, it has an upcoming booking (assignment 3)
+DELETE {{host}}/api/halls/{{createHall.response.body.$.id}}
+
+### 10. A hall without bookings
+# @name spareHall
+POST {{host}}/api/halls
+Content-Type: application/json
+
+{
+  "name": "Зал E",
+  "capacity": 20,
+  "pricePerHour": 1000,
+  "services": []
+}
+
+### 11. ...can be deleted -> 204 (assignment 3)
+DELETE {{host}}/api/halls/{{spareHall.response.body.$.id}}
+
+### 12. ...and is gone -> 404
+GET {{host}}/api/halls/{{spareHall.response.body.$.id}}
+
+### 13. Validation -> 400 with every error at once
+POST {{host}}/api/halls
+Content-Type: application/json
+
+{
+  "name": "",
+  "capacity": 0,
+  "pricePerHour": -5,
+  "services": [ { "name": "Проєктор", "price": 0 } ]
+}
+
+### 14. Outside working hours (06:00-23:00) -> 400
+POST {{host}}/api/bookings
+Content-Type: application/json
+
+{
+  "hallId": "{{createHall.response.body.$.id}}",
+  "start": "{{day}}T22:00:00",
+  "duration": "02:00:00",
+  "serviceIds": []
+}
