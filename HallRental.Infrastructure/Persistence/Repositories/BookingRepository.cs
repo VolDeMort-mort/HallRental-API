@@ -15,6 +15,10 @@ public class BookingRepository: IBookingRepository
 
     public async Task AddAsync(Booking booking, CancellationToken cancellationToken) => await _context.Bookings.AddAsync(booking, cancellationToken);
 
+    // The period and the booked services are owned by the booking, so EF loads them without Include
+    public Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken) =>
+        _context.Bookings.AsNoTracking().FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+
     // Same formula as RentalPeriod.Overlaps, translated to SQL
     public Task<bool> HasOverlapAsync(Guid hallId, RentalPeriod period, CancellationToken cancellationToken) =>
         _context.Bookings.AnyAsync(b => b.HallId == hallId

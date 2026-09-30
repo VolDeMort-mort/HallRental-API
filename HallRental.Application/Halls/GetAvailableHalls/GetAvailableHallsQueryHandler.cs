@@ -18,13 +18,6 @@ public class GetAvailableHallsQueryHandler: IRequestHandler<GetAvailableHallsQue
         var period = new RentalPeriod(request.Start, request.End);
         var halls = await _halls.GetAvailableAsync(request.MinCapacity, period, cancellationToken);
 
-        return halls
-            .Select(h => new HallDto(
-                h.Id,
-                h.Name,
-                h.Capacity,
-                h.PricePerHour,
-                h.Services.Select(s => new ServiceDto(s.Id, s.Name, s.Price)).ToList()))
-            .ToList();
+        return halls.Select(h => h.ToDto()).ToList();
     }
 }

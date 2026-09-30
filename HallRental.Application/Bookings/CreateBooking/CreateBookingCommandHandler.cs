@@ -49,14 +49,6 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
         await _bookings.AddAsync(booking, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new BookingDto(
-            booking.Id,
-            hall.Name,
-            booking.Period.Start,
-            booking.Period.End,
-            booking.Services.Select(s => new BookedServiceDto(s.ServiceId, s.Name, s.Price)).ToList(),
-            booking.RentPrice,
-            booking.ServicesPrice,
-            booking.TotalPrice);
+        return booking.ToDto(hall.Name);
     }
 }

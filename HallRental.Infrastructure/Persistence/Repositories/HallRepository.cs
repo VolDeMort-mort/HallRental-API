@@ -37,6 +37,15 @@ public class HallRepository: IHallRepository
                      && !_context.Bookings.Any(b => b.HallId == h.Id
                                                  && b.Period.Start < rentalPeriod.End
                                                  && rentalPeriod.Start < b.Period.End))
+            .OrderBy(h => h.Name)
             .ToListAsync(cancellationToken);
     }
+
+    // IgnoreQueryFilters: a deleted hall's name is still needed to show its old bookings
+    public Task<string> GetNameAsync(Guid id, CancellationToken cancellationToken) =>
+        _context.Halls
+            .IgnoreQueryFilters()
+            .Where(h => h.Id == id)
+            .Select(h => h.Name)
+            .FirstAsync(cancellationToken);
 }
