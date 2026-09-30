@@ -9,6 +9,9 @@ namespace HallRental.Domain.Entities;
 /// </summary>
 public class HoursPricing
 {
+    /// <summary>Shared by the domain check and the database column.</summary>
+    public const int MaxNameLength = 100;
+
     public Guid Id{get; private set;}
 
     public string Name { get; private set; } = string.Empty;
@@ -34,6 +37,8 @@ public class HoursPricing
     {
         if (string.IsNullOrWhiteSpace(name))
             throw new DomainException("Hours pricing name can't be empty");
+        if (name.Trim().Length > MaxNameLength)
+            throw new DomainException($"Hours pricing name can't be longer than {MaxNameLength} characters");
         Name = name.Trim();
     }
 

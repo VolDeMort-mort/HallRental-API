@@ -1,11 +1,13 @@
 using HallRental.Api.ErrorHandling;
 using HallRental.Application;
+using HallRental.Infrastructure;
+using HallRental.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 
 builder.Services.AddApplication();
+builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers();
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
@@ -26,6 +28,10 @@ app.UseExceptionHandler();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
+    // Creates or updates the local database and adds the initial data from the assignment.
+    // In production migrations are applied as a separate deployment step, not on every start.
+    await app.Services.InitializeDatabaseAsync();
+
     app.UseSwagger();
     app.UseSwaggerUI();
 }
