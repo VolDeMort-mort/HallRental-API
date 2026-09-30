@@ -22,6 +22,9 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         {
             period.Property(p => p.Start).HasColumnName("Start");
             period.Property(p => p.End).HasColumnName("End");
+
+            // Reports filter bookings by the start of the period
+            period.HasIndex(p => p.Start);
         });
         builder.Navigation(b => b.Period).IsRequired();
 

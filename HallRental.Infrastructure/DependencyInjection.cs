@@ -1,5 +1,6 @@
 using HallRental.Application.Interfaces;
 using HallRental.Infrastructure.Persistence;
+using HallRental.Infrastructure.Persistence.Queries;
 using HallRental.Infrastructure.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -24,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<IHallRepository, HallRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IHoursPricingRepository, HoursPricingRepository>();
+        services.AddScoped<IReportQueries, ReportQueries>();
 
         services.AddSingleton(TimeProvider.System);
 

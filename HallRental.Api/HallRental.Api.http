@@ -115,3 +115,13 @@ Content-Type: application/json
   "duration": "02:00:00",
   "serviceIds": []
 }
+
+### 15. Report: halls for September 2030 (bookings from step 6 included)
+# Hall D: 4 h out of 17 h x 30 days = 0.78% occupancy, revenue 11050
+GET {{host}}/api/reports/halls?from=2030-09-01&to=2030-10-01
+
+### 16. Report: services for September 2030
+GET {{host}}/api/reports/services?from=2030-09-01&to=2030-10-01
+
+### 17. Report with a wrong period -> 400
+GET {{host}}/api/reports/halls?from=2030-10-01&to=2030-09-01
