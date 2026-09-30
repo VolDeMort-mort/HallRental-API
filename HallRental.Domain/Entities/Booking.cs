@@ -4,13 +4,7 @@ using HallRental.Domain.ValueObjects;
 
 namespace HallRental.Domain.Entities;
 
-/// <summary>
-/// A booking of one hall for one period with the services the client picked.
-/// <para>
-/// The check that the hall is free is NOT here: it needs the other bookings of the hall,
-/// so the Application layer does it with a database query before creating a booking.
-/// </para>
-/// </summary>
+// "Is the hall free?" needs the other bookings of the hall, so the Application layer checks it before Create
 public class Booking
 {
     public const int MaxClientIdLength = 200;
@@ -21,16 +15,13 @@ public class Booking
 
     public Guid HallId { get; private set; }
 
-    /// <summary>The person who made the booking, as identified by the access token.</summary>
     public string ClientId { get; private set; } = string.Empty;
 
-    /// <summary> Always set by Create; null! is only for EF Core, which uses the private constructor.</summary>
+    // Always set by Create; null! is only for EF Core, which uses the private constructor
     public RentalPeriod Period { get; private set; } = null!;
 
-    /// <summary> Hall rent with the tariff zones applied.</summary>
     public decimal RentPrice { get; private set; }
 
-    /// <summary> Sum of the picked services at the prices of the booking moment.</summary>
     public decimal ServicesPrice { get; private set; }
 
     public decimal TotalPrice => RentPrice + ServicesPrice;
@@ -39,8 +30,7 @@ public class Booking
 
     private Booking(){}
 
-    /// <param name="now">Current time in the hall's local time. It comes from outside (TimeProvider in the handler),
-    /// so the domain never calls DateTime.Now and stays testable.</param>
+    // now comes from outside instead of DateTime.Now, so the domain stays testable
     public static Booking Create(
         string clientId,
         Hall hall,
@@ -73,11 +63,7 @@ public class Booking
         return booking;
     }
 
-    /// <summary>
-    /// Moves the booking to another period of the same hall. Services keep their booked prices,
-    /// the rent is calculated again for the new time.
-    /// The caller still has to check that the new period is free (excluding this booking).
-    /// </summary>
+    // The caller still has to check that the new period is free (excluding this booking)
     public void ChangeRentTime(RentalPeriod period, Hall hall, PricingPolicy pricing, DateTime now)
     {
         if (hall.Id != HallId)

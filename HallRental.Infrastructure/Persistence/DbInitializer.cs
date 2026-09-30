@@ -4,10 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HallRental.Infrastructure.Persistence;
 
-/// <summary>
-/// Applies migrations and fills an empty database with the initial data from the assignment.
-/// The data is created through the domain factories, so it passes the same checks as data from the API.
-/// </summary>
+// Seed data goes through the domain factories, so it passes the same checks as data from the API
 public static class DbInitializer
 {
     public static async Task InitializeDatabaseAsync(this IServiceProvider services, CancellationToken cancellationToken = default)
@@ -17,7 +14,7 @@ public static class DbInitializer
 
         await context.Database.MigrateAsync(cancellationToken);
 
-        // Deactivated halls count too: seeding again would bring deleted halls back
+        // Deleted halls count too, otherwise seeding again would bring them back
         if (!await context.Halls.IgnoreQueryFilters().AnyAsync(cancellationToken))
             context.Halls.AddRange(CreateHalls());
 

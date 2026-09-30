@@ -22,11 +22,10 @@ public class GetBookingByIdQueryHandler : IRequestHandler<GetBookingByIdQuery, B
     {
         Booking? booking = await _bookings.GetByIdAsync(request.Id, cancellationToken);
 
-        // Someone else's booking looks exactly like a missing one, so its existence isn't revealed
+        // Someone else's booking looks like a missing one, so its existence isn't revealed
         if (booking == null || (booking.ClientId != _currentUser.Id && !_currentUser.IsAdmin))
             throw new NotFoundException("Booking was not found");
 
-        // The hall may be deleted by now, but the booking still shows the hall it was made for
         var hallName = await _halls.GetNameAsync(booking.HallId, cancellationToken);
 
         return booking.ToDto(hallName);

@@ -1,9 +1,6 @@
 namespace HallRental.Application.Reports.HallsReport;
 
-/// <summary>
-/// Raw sums of one hall, aggregated by the database. The handler turns them into <see cref="HallReportDto"/>,
-/// adding what depends on the tariff zones (occupancy).
-/// </summary>
+/// <summary>Sums of one hall as the database returns them, before occupancy is calculated.</summary>
 public record HallReportRow(
     Guid HallId,
     string Name,

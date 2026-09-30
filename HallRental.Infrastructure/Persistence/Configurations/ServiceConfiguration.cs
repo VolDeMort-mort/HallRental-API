@@ -11,11 +11,11 @@ public class ServiceConfiguration : IEntityTypeConfiguration<Service>
         builder.ToTable("Services");
 
         builder.HasKey(s => s.Id);
-        // Without this EF treats a new service added to a loaded hall as an existing row and sends UPDATE instead of INSERT
+        // Otherwise a service added to a loaded hall is sent as UPDATE instead of INSERT
         builder.Property(s => s.Id).ValueGeneratedNever();
         builder.Property(s => s.Name).HasMaxLength(Service.MaxNameLength).IsRequired();
 
-        // The database backs up Hall.AddService: the default SQL Server collation is case-insensitive too
+        // Backs up Hall.AddService; the default SQL Server collation is case-insensitive too
         builder.HasIndex("HallId", nameof(Service.Name)).IsUnique();
     }
 }

@@ -2,14 +2,9 @@ using HallRental.Domain.Exceptions;
 
 namespace HallRental.Domain.Entities;
 
-/// <summary>
-/// A time-of-day tariff zone, e.g. "Peak 12:00–14:00 x1.15" or "Evening 18:00–23:00 x0.80".
-/// The multiplier is applied to the hall's price per hour: below 1 is a discount, above 1 is a markup.
-/// A zone lies within one day, so it can't cross midnight.
-/// </summary>
+// A time-of-day tariff zone within one day; Multiplier below 1 is a discount, above 1 a markup
 public class HoursPricing
 {
-    /// <summary>Shared by the domain check and the database column.</summary>
     public const int MaxNameLength = 100;
 
     public Guid Id{get; private set;}

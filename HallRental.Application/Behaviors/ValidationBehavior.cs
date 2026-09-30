@@ -3,10 +3,6 @@ using MediatR;
 
 namespace HallRental.Application.Behaviors;
 
-/// <summary>
-/// Runs all validators of a request before its handler, so handlers receive only valid input.
-/// All failures are collected and thrown together, so the client can fix every field at once.
-/// </summary>
 public sealed class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {

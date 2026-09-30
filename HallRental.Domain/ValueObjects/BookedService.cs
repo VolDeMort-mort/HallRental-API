@@ -1,7 +1,4 @@
 namespace HallRental.Domain.ValueObjects;
 
-/// <summary>
-/// A copy of a hall service taken at the moment of booking.
-/// If the projector becomes more expensive tomorrow, bookings made today keep today's price.
-/// </summary>
+// A copy taken at the booking moment, so later price changes don't affect existing bookings
 public sealed record BookedService(Guid ServiceId, string Name, decimal Price);

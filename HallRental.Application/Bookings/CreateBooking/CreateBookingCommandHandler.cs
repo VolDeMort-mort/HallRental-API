@@ -39,11 +39,10 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
         if (isBusy)
             throw new ConflictException("The hall is already booked at this time");
 
-        // Tariffs are read only after the cheap checks: a request for a missing or busy hall doesn't need them
         var zones = await _pricing.GetAllAsync(cancellationToken);
         var pricingPolicy = new PricingPolicy(zones);
 
-        // Server's local time: if the server runs in UTC (Docker, cloud), the halls' time zone has to be set explicitly
+        // Server's local time: on a UTC server (Docker, cloud) the halls' time zone has to be set explicitly
         var now = _timeProvider.GetLocalNow().DateTime;
 
         var booking = Booking.Create(_currentUser.Id, hall, rentalPeriod, request.ServiceIds, pricingPolicy, now);

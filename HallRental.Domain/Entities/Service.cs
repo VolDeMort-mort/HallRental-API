@@ -2,13 +2,9 @@ using HallRental.Domain.Exceptions;
 
 namespace HallRental.Domain.Entities;
 
-/// <summary>
-/// An extra service offered by a hall (projector, Wi-Fi, sound).
-/// The price is charged once per booking, not per hour.
-/// </summary>
+// The price is charged once per booking, not per hour
 public class Service
 {
-    /// <summary>Shared by the domain check, the request validators and the database column.</summary>
     public const int MaxNameLength = 100;
 
     public Guid Id { get; private set; }
@@ -43,6 +39,5 @@ public class Service
         Price = price;
     }
 
-    /// <summary>"Projector" and " projector " are the same service for a human.</summary>
     public bool HasName(string name) => string.Equals(Name, name.Trim(), StringComparison.OrdinalIgnoreCase);
 }

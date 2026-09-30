@@ -15,14 +15,12 @@ public class AppDbContext : DbContext, IUnitOfWork
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
-        // Picks up every IEntityTypeConfiguration in Persistence/Configurations
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
     }
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {
-        // Every money field at once: without an explicit precision SQL Server may round values silently
+        // Without an explicit precision SQL Server may round money silently
         configurationBuilder.Properties<decimal>().HavePrecision(18, 2);
     }
 }

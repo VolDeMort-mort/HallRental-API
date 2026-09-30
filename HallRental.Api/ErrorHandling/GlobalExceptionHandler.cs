@@ -6,9 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HallRental.Api.ErrorHandling;
 
-/// <summary>
-/// Turns exceptions from the Application and Domain layers into standard problem responses (RFC 9110).
-/// </summary>
 public sealed class GlobalExceptionHandler : IExceptionHandler
 {
     private readonly IProblemDetailsService _problemDetailsService;
@@ -50,7 +47,7 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 Title = "Conflict",
                 Detail = exception.Message
             },
-            // Anything else is a bug: the client gets no details (server names, SQL, paths), the log gets everything
+            // Anything else is a bug: no details for the client (server names, SQL), everything for the log
             _ => new ProblemDetails
             {
                 Status = StatusCodes.Status500InternalServerError,

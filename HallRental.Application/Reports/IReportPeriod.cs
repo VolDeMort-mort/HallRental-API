@@ -1,9 +1,6 @@
 namespace HallRental.Application.Reports;
 
-/// <summary>
-/// A report period in days: <see cref="From"/> inclusive, <see cref="To"/> exclusive,
-/// the same half-open rule as a rental period. A booking belongs to the period by its start.
-/// </summary>
+// [From, To) in days, like a rental period; a booking belongs to the period by its start
 public interface IReportPeriod
 {
     DateOnly From { get; }

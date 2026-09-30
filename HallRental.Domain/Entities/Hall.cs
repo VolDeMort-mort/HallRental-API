@@ -4,7 +4,6 @@ namespace HallRental.Domain.Entities;
 
 public class Hall
 {
-    /// <summary>Shared by the domain check, the request validators and the database column.</summary>
     public const int MaxNameLength = 100;
 
     private readonly List<Service> _services = new();
@@ -50,10 +49,7 @@ public class Hall
         PricePerHour = price;
     }
 
-    /// <summary>
-    /// Soft delete: the hall disappears from search and can't be booked any more,
-    /// but its past bookings stay, so the history and revenue reports remain correct.
-    /// </summary>
+    // Soft delete: past bookings stay for history and reports
     public void Deactivate()
     {
         IsActive = false;
@@ -67,10 +63,6 @@ public class Hall
         _services.Add(service);
     }
 
-    /// <summary>
-    /// Returns the services the client picked for a booking.
-    /// Fails if the client asked for something this hall does not offer.
-    /// </summary>
     public IReadOnlyList<Service> SelectServices(IReadOnlyCollection<Guid> serviceIds)
     {
         var requestedIds = serviceIds.Distinct().ToList();

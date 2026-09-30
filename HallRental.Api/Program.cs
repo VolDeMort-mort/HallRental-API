@@ -16,7 +16,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddControllers()
-    // Hall and service names are Cyrillic: keep them readable instead of "Зал"
     .AddJsonOptions(options => options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All));
 
 builder.Services.AddAuthentication().AddJwtBearer();
@@ -24,7 +23,6 @@ builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
 
-// 100 requests a minute per signed-in person, or per IP address for anonymous requests
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -35,7 +33,6 @@ builder.Services.AddRateLimiter(options =>
 });
 
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-// traceId lets a client report a 500 that can then be found in the logs
 builder.Services.AddProblemDetails(options =>
     options.CustomizeProblemDetails = context =>
         context.ProblemDetails.Extensions["traceId"] = context.HttpContext.TraceIdentifier);
@@ -43,7 +40,6 @@ builder.Services.AddProblemDetails(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    // Controllers and request models are documented in the Api, response models in the Application
     var documentedAssemblies = new[] { typeof(Program).Assembly, typeof(HallRental.Application.DependencyInjection).Assembly };
     foreach (var assembly in documentedAssemblies)
         options.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, $"{assembly.GetName().Name}.xml"), includeControllerXmlComments: true);
@@ -61,15 +57,13 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// First in the pipeline, so it catches exceptions from everything registered after it
+// First, so it catches exceptions from the whole pipeline
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    // Creates or updates the local database and adds the initial data from the assignment.
-    // In production migrations are applied as a separate deployment step, not on every start.
+    // In production migrations are a separate deployment step, not part of every start
     await app.Services.InitializeDatabaseAsync();
 
     app.UseSwagger();

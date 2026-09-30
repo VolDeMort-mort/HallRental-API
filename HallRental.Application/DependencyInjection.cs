@@ -6,9 +6,6 @@ namespace HallRental.Application;
 
 public static class DependencyInjection
 {
-    /// <summary>
-    /// Registers every handler and validator of this assembly, so new use cases need no changes in Program.cs.
-    /// </summary>
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         var assembly = typeof(DependencyInjection).Assembly;

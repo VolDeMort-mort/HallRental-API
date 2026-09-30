@@ -15,12 +15,10 @@ public static class DependencyInjection
         var connectionString = configuration.GetConnectionString("Default")
             ?? throw new InvalidOperationException("Connection string 'Default' is not configured");
 
-        // Retries transient SQL errors (dropped connection, failover) instead of failing the request at once.
-        // Note for later: with retries on, an explicit transaction has to run inside the execution strategy.
         services.AddDbContext<AppDbContext>(options =>
             options.UseSqlServer(connectionString, sql => sql.EnableRetryOnFailure()));
 
-        // The same scoped context as the repositories use, so SaveChanges sees everything they added
+        // The same scoped context as the repositories, so SaveChanges sees what they added
         services.AddScoped<IUnitOfWork>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IHallRepository, HallRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();

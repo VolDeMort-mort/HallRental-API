@@ -6,10 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HallRental.Infrastructure.Persistence.Queries;
 
-/// <summary>
-/// Report queries: EF turns the GroupBy / Count / Sum below into one SQL statement per report,
-/// so only the ready rows come back from the database.
-/// </summary>
 public class ReportQueries : IReportQueries
 {
     private readonly AppDbContext _context;
@@ -23,8 +19,7 @@ public class ReportQueries : IReportQueries
     {
         var bookings = BookingsStartingIn(from, to);
 
-        // Built from the halls, not from the bookings: an idle hall is an answer too and shows up with zeros.
-        // TotalPrice isn't stored (it's calculated), so the sums use RentPrice and ServicesPrice.
+        // Built from the halls, so an idle hall shows up with zeros; TotalPrice isn't stored, so its parts are summed
         return await _context.Halls
             .IgnoreQueryFilters()
             .Where(h => h.IsActive || bookings.Any(b => b.HallId == h.Id))
@@ -42,7 +37,7 @@ public class ReportQueries : IReportQueries
 
     public async Task<IReadOnlyList<ServiceReportDto>> GetServiceRowsAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
-        // Grouped by the copies stored in the bookings: what was really sold, at the prices it was sold for
+        // The copies in the bookings: what was really sold, at the prices it was sold for
         return await BookingsStartingIn(from, to)
             .SelectMany(b => b.Services)
             .GroupBy(s => s.Name)

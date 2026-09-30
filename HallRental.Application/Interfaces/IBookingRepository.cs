@@ -11,6 +11,6 @@ public interface IBookingRepository
 
     Task<bool> HasOverlapAsync(Guid hallId, RentalPeriod period, CancellationToken cancellationToken);
 
-    /// <summary>Bookings that haven't ended yet, including the ones going on right now.</summary>
+    // Includes bookings going on right now
     Task<bool> HasFutureBookingsAsync(Guid hallId, DateTime now, CancellationToken cancellationToken);
 }

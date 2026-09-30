@@ -8,8 +8,7 @@ public class CreateBookingCommandValidator : AbstractValidator<CreateBookingComm
     {
         RuleFor(x => x.HallId).NotEmpty();
 
-        // The upper limit is only a safety cap (DateTime overflow, pointless load on pricing).
-        // Working hours are checked by the domain: they come from the tariff zones, not from here.
+        // Only a safety cap against DateTime overflow; working hours are checked by the domain
         RuleFor(x => x.Duration)
             .GreaterThan(TimeSpan.Zero)
             .LessThanOrEqualTo(TimeSpan.FromDays(1)).WithMessage("Duration can't be longer than 1 day");

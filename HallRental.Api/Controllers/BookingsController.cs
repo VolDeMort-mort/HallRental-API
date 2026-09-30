@@ -7,11 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HallRental.Api.Controllers;
 
-/// <summary>Bookings of conference halls with the rent calculated by time of day.</summary>
-/// <remarks>
-/// Rent per hour: 06–09 −10%, 09–12 base price, 12–14 +15%, 14–18 base price, 18–23 −20%.
-/// Services are charged once per booking. A client sees only their own bookings, an admin sees all.
-/// </remarks>
+/// <summary>Hall bookings; a client sees only their own bookings, an admin sees all.</summary>
 [ApiController]
 [Route("api/bookings")]
 [Produces("application/json")]
@@ -27,12 +23,6 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>Books a hall and returns the confirmation with the total cost.</summary>
-    /// <param name="request">The hall, the period and the services.</param>
-    /// <param name="cancellationToken">Cancelled when the client disconnects.</param>
-    /// <response code="201">The booking is created; the body holds the cost breakdown.</response>
-    /// <response code="400">The request is invalid, the period is in the past or outside working hours, or a service isn't offered by the hall.</response>
-    /// <response code="404">There is no such hall, or it was deleted.</response>
-    /// <response code="409">The hall is already booked for part of this period.</response>
     [HttpPost]
     [ProducesResponseType(typeof(BookingDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -45,10 +35,6 @@ public class BookingsController : ControllerBase
     }
 
     /// <summary>Returns a booking with its cost breakdown.</summary>
-    /// <param name="id">Booking id.</param>
-    /// <param name="cancellationToken">Cancelled when the client disconnects.</param>
-    /// <response code="200">The booking.</response>
-    /// <response code="404">There is no such booking, or it belongs to someone else.</response>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

@@ -19,10 +19,8 @@ public class GetHallsReportQueryHandler : IRequestHandler<GetHallsReportQuery, H
         var from = request.From.ToDateTime(TimeOnly.MinValue);
         var to = request.To.ToDateTime(TimeOnly.MinValue);
 
-        // The heavy part (counting and summing bookings) is done by the database
         var rows = await _reports.GetHallRowsAsync(from, to, cancellationToken);
 
-        // Working hours come from the tariff zones, so the report follows any change of the zones
         var zones = await _pricing.GetAllAsync(cancellationToken);
         var workingHoursPerDay = zones.Sum(z => ToHours(z.To - z.From));
         var availableHours = workingHoursPerDay * (request.To.DayNumber - request.From.DayNumber);

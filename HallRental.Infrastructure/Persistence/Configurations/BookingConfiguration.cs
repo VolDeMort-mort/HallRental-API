@@ -13,24 +13,20 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         builder.Property(b => b.ClientId).HasMaxLength(Booking.MaxClientIdLength).IsRequired();
         builder.HasIndex(b => b.ClientId);
 
-        // Bookings are the history for reports: a hall with bookings can't be removed from the database
+        // Bookings are the history for reports, so a hall with bookings can't be removed from the database
         builder.HasOne<Hall>()
             .WithMany()
             .HasForeignKey(b => b.HallId)
             .OnDelete(DeleteBehavior.Restrict);
 
-        // The period is stored in the booking's own table as two columns
         builder.OwnsOne(b => b.Period, period =>
         {
             period.Property(p => p.Start).HasColumnName("Start");
             period.Property(p => p.End).HasColumnName("End");
-
-            // Reports filter bookings by the start of the period
             period.HasIndex(p => p.Start);
         });
         builder.Navigation(b => b.Period).IsRequired();
 
-        // Copies of the picked services with their prices at the booking moment
         builder.OwnsMany(b => b.Services, service =>
         {
             service.ToTable("BookedServices");
@@ -39,10 +35,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
         });
         builder.Navigation(b => b.Services).UsePropertyAccessMode(PropertyAccessMode.Field);
 
-        // Calculated as RentPrice + ServicesPrice, nothing to store
         builder.Ignore(b => b.TotalPrice);
 
-        // Overlap checks and the search filter bookings by hall
         builder.HasIndex(b => b.HallId);
     }
 }

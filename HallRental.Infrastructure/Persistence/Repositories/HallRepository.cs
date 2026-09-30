@@ -18,8 +18,7 @@ public class HallRepository: IHallRepository
         await _context.Halls.AddAsync(hall, cancellationToken);
     }
 
-    // Tracked (no AsNoTracking): commands change the hall and SaveChanges has to see it.
-    // Services are needed for the duplicate check and for picking services of a booking.
+    // Tracked: commands change the hall, and SaveChanges has to see it
     public async Task<Hall?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
     {
         return await _context.Halls
@@ -27,7 +26,6 @@ public class HallRepository: IHallRepository
             .FirstOrDefaultAsync(h => h.Id == id, cancellationToken);
     }
 
-    // Read only, so no tracking. Inactive halls are skipped by the query filter.
     public async Task<IReadOnlyList<Hall>> GetAvailableAsync(int minCapacity, RentalPeriod rentalPeriod, CancellationToken cancellationToken)
     {
         return await _context.Halls
@@ -41,7 +39,6 @@ public class HallRepository: IHallRepository
             .ToListAsync(cancellationToken);
     }
 
-    // IgnoreQueryFilters: a deleted hall's name is still needed to show its old bookings
     public Task<string> GetNameAsync(Guid id, CancellationToken cancellationToken) =>
         _context.Halls
             .IgnoreQueryFilters()
