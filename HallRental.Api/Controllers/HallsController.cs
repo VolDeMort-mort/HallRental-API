@@ -1,15 +1,17 @@
 using HallRental.Api.Contracts;
 using HallRental.Api.Contracts.Halls;
+using HallRental.Api.Security;
 using HallRental.Application.Halls;
 using HallRental.Application.Halls.DeleteHall;
 using HallRental.Application.Halls.GetAvailableHalls;
 using HallRental.Application.Halls.GetHallById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HallRental.Api.Controllers;
 
-/// <summary>Conference halls: management and availability search.</summary>
+/// <summary>Conference halls: management (admin only) and a public availability search.</summary>
 /// <remarks>
 /// The controller only translates HTTP into commands and back. Business rules live in the Domain,
 /// errors are turned into 400 / 404 / 409 by the global exception handler.
@@ -17,6 +19,9 @@ namespace HallRental.Api.Controllers;
 [ApiController]
 [Route("api/halls")]
 [Produces("application/json")]
+[Authorize(Roles = Roles.Admin)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class HallsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -44,6 +49,7 @@ public class HallsController : ControllerBase
     /// <response code="200">The hall.</response>
     /// <response code="404">There is no such hall, or it was deleted.</response>
     [HttpGet("{id:guid}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(HallDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<HallDto>> GetById(Guid id, CancellationToken cancellationToken)
@@ -114,6 +120,7 @@ public class HallsController : ControllerBase
     /// <response code="200">Free halls ordered by name; an empty list if there are none.</response>
     /// <response code="400">The period or the number of people is invalid.</response>
     [HttpGet("available")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(IReadOnlyList<HallDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<IReadOnlyList<HallDto>>> SearchAvailable(

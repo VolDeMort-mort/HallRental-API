@@ -11,6 +11,7 @@ internal static class BookingMapping
         booking.Id,
         booking.HallId,
         hallName,
+        booking.ClientId,
         booking.Period.Start,
         booking.Period.End,
         booking.Services

@@ -14,14 +14,16 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
     private readonly IHoursPricingRepository _pricing;
     private readonly TimeProvider _timeProvider;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ICurrentUser _currentUser;
 
-    public CreateBookingCommandHandler(IHallRepository halls, IUnitOfWork unitOfWork, IBookingRepository bookings, IHoursPricingRepository pricing, TimeProvider timeProvider)
+    public CreateBookingCommandHandler(IHallRepository halls, IUnitOfWork unitOfWork, IBookingRepository bookings, IHoursPricingRepository pricing, TimeProvider timeProvider, ICurrentUser currentUser)
     {
         _halls = halls;
         _unitOfWork = unitOfWork;
         _bookings = bookings;
         _pricing = pricing;
         _timeProvider = timeProvider;
+        _currentUser = currentUser;
     }
 
     public async Task<BookingDto> Handle(CreateBookingCommand request, CancellationToken cancellationToken)
@@ -44,7 +46,7 @@ public class CreateBookingCommandHandler : IRequestHandler<CreateBookingCommand,
         // Server's local time: if the server runs in UTC (Docker, cloud), the halls' time zone has to be set explicitly
         var now = _timeProvider.GetLocalNow().DateTime;
 
-        var booking = Booking.Create(hall, rentalPeriod, request.ServiceIds, pricingPolicy, now);
+        var booking = Booking.Create(_currentUser.Id, hall, rentalPeriod, request.ServiceIds, pricingPolicy, now);
 
         await _bookings.AddAsync(booking, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);

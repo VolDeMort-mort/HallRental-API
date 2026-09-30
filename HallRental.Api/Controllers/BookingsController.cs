@@ -2,6 +2,7 @@ using HallRental.Api.Contracts.Bookings;
 using HallRental.Application.Bookings;
 using HallRental.Application.Bookings.GetBookingById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HallRental.Api.Controllers;
@@ -9,11 +10,13 @@ namespace HallRental.Api.Controllers;
 /// <summary>Bookings of conference halls with the rent calculated by time of day.</summary>
 /// <remarks>
 /// Rent per hour: 06–09 −10%, 09–12 base price, 12–14 +15%, 14–18 base price, 18–23 −20%.
-/// Services are charged once per booking.
+/// Services are charged once per booking. A client sees only their own bookings, an admin sees all.
 /// </remarks>
 [ApiController]
 [Route("api/bookings")]
 [Produces("application/json")]
+[Authorize]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
 public class BookingsController : ControllerBase
 {
     private readonly ISender _sender;
@@ -45,7 +48,7 @@ public class BookingsController : ControllerBase
     /// <param name="id">Booking id.</param>
     /// <param name="cancellationToken">Cancelled when the client disconnects.</param>
     /// <response code="200">The booking.</response>
-    /// <response code="404">There is no such booking.</response>
+    /// <response code="404">There is no such booking, or it belongs to someone else.</response>
     [HttpGet("{id:guid}")]
     [ProducesResponseType(typeof(BookingDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

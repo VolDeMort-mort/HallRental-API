@@ -1,6 +1,10 @@
 # The whole assignment in one run: execute the requests top to bottom.
 # Later requests take ids from earlier responses ({{name.response.body...}}, Visual Studio 17.12+).
 # Every run creates new halls, so the scenario can be repeated on the same database.
+#
+# Select the "dev" environment (top right). Tokens come from http-client.env.json.user (not in git):
+#   dotnet user-jwts create --project HallRental.Api --name admin --role Admin --output token
+#   dotnet user-jwts create --project HallRental.Api --name client-1 --output token
 
 @host = http://localhost:5112
 @day = 2030-09-01
@@ -8,6 +12,7 @@
 ### 1. Add a hall with services (assignment 1)
 # @name createHall
 POST {{host}}/api/halls
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -20,12 +25,13 @@ Content-Type: application/json
   ]
 }
 
-### 2. The new hall with the ids of its services
+### 2. The new hall with the ids of its services (public)
 # @name hall
 GET {{host}}/api/halls/{{createHall.response.body.$.id}}
 
 ### 3. Change the price 1800 -> 2500 (assignment 2)
 PUT {{host}}/api/halls/{{createHall.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -36,6 +42,7 @@ Content-Type: application/json
 
 ### 4. Add the "Звук" service for 700 (assignment 2)
 POST {{host}}/api/halls/{{createHall.response.body.$.id}}/services
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -43,13 +50,14 @@ Content-Type: application/json
   "price": 700
 }
 
-### 5. Free halls for 40 people, 10:00-14:00 (assignment 4)
+### 5. Free halls for 40 people, 10:00-14:00 (assignment 4, public)
 GET {{host}}/api/halls/available?start={{day}}T10:00:00&end={{day}}T14:00:00&minCapacity=40
 
 ### 6. Book the new hall 10:00-14:00 with Wi-Fi (assignment 5)
 # Rent: 2 h x 2500 + 2 h x 2875 (peak +15%) = 10750, Wi-Fi 300, total 11050
 # @name booking
 POST {{host}}/api/bookings
+Authorization: Bearer {{clientToken}}
 Content-Type: application/json
 
 {
@@ -61,6 +69,7 @@ Content-Type: application/json
 
 ### 7. The same hall at 11:00 -> 409, it is already booked
 POST {{host}}/api/bookings
+Authorization: Bearer {{clientToken}}
 Content-Type: application/json
 
 {
@@ -70,15 +79,18 @@ Content-Type: application/json
   "serviceIds": []
 }
 
-### 8. The booking confirmation again
+### 8. The booking confirmation again (only its owner or an admin sees it)
 GET {{host}}/api/bookings/{{booking.response.body.$.id}}
+Authorization: Bearer {{clientToken}}
 
 ### 9. Delete the hall -> 409, it has an upcoming booking (assignment 3)
 DELETE {{host}}/api/halls/{{createHall.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
 
 ### 10. A hall without bookings
 # @name spareHall
 POST {{host}}/api/halls
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -90,12 +102,14 @@ Content-Type: application/json
 
 ### 11. ...can be deleted -> 204 (assignment 3)
 DELETE {{host}}/api/halls/{{spareHall.response.body.$.id}}
+Authorization: Bearer {{adminToken}}
 
 ### 12. ...and is gone -> 404
 GET {{host}}/api/halls/{{spareHall.response.body.$.id}}
 
 ### 13. Validation -> 400 with every error at once
 POST {{host}}/api/halls
+Authorization: Bearer {{adminToken}}
 Content-Type: application/json
 
 {
@@ -107,6 +121,7 @@ Content-Type: application/json
 
 ### 14. Outside working hours (06:00-23:00) -> 400
 POST {{host}}/api/bookings
+Authorization: Bearer {{clientToken}}
 Content-Type: application/json
 
 {
@@ -119,9 +134,27 @@ Content-Type: application/json
 ### 15. Report: halls for September 2030 (bookings from step 6 included)
 # Hall D: 4 h out of 17 h x 30 days = 0.78% occupancy, revenue 11050
 GET {{host}}/api/reports/halls?from=2030-09-01&to=2030-10-01
+Authorization: Bearer {{adminToken}}
 
 ### 16. Report: services for September 2030
 GET {{host}}/api/reports/services?from=2030-09-01&to=2030-10-01
+Authorization: Bearer {{adminToken}}
 
 ### 17. Report with a wrong period -> 400
 GET {{host}}/api/reports/halls?from=2030-10-01&to=2030-09-01
+Authorization: Bearer {{adminToken}}
+
+### 18. Booking without a token -> 401
+POST {{host}}/api/bookings
+Content-Type: application/json
+
+{
+  "hallId": "{{createHall.response.body.$.id}}",
+  "start": "{{day}}T15:00:00",
+  "duration": "01:00:00",
+  "serviceIds": []
+}
+
+### 19. A client can't see reports -> 403
+GET {{host}}/api/reports/halls?from=2030-09-01&to=2030-10-01
+Authorization: Bearer {{clientToken}}

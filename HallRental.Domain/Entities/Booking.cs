@@ -13,11 +13,16 @@ namespace HallRental.Domain.Entities;
 /// </summary>
 public class Booking
 {
+    public const int MaxClientIdLength = 200;
+
     private readonly List<BookedService> _services = new();
 
     public Guid Id { get; private set; }
 
     public Guid HallId { get; private set; }
+
+    /// <summary>The person who made the booking, as identified by the access token.</summary>
+    public string ClientId { get; private set; } = string.Empty;
 
     /// <summary> Always set by Create; null! is only for EF Core, which uses the private constructor.</summary>
     public RentalPeriod Period { get; private set; } = null!;
@@ -37,12 +42,16 @@ public class Booking
     /// <param name="now">Current time in the hall's local time. It comes from outside (TimeProvider in the handler),
     /// so the domain never calls DateTime.Now and stays testable.</param>
     public static Booking Create(
+        string clientId,
         Hall hall,
         RentalPeriod period,
         IReadOnlyCollection<Guid> serviceIds,
         PricingPolicy pricing,
         DateTime now)
     {
+        if (string.IsNullOrWhiteSpace(clientId) || clientId.Length > MaxClientIdLength)
+            throw new DomainException("A booking needs a valid client");
+
         if (!hall.IsActive)
             throw new DomainException("A deleted hall can't be booked");
 
@@ -52,6 +61,7 @@ public class Booking
         {
             Id = Guid.NewGuid(),
             HallId = hall.Id,
+            ClientId = clientId,
             Period = period,
             RentPrice = pricing.CalculateRent(hall.PricePerHour, period)
         };

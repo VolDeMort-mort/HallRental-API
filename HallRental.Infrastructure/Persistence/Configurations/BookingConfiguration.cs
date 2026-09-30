@@ -10,6 +10,8 @@ public class BookingConfiguration : IEntityTypeConfiguration<Booking>
     {
         builder.HasKey(b => b.Id);
         builder.Property(b => b.Id).ValueGeneratedNever();
+        builder.Property(b => b.ClientId).HasMaxLength(Booking.MaxClientIdLength).IsRequired();
+        builder.HasIndex(b => b.ClientId);
 
         // Bookings are the history for reports: a hall with bookings can't be removed from the database
         builder.HasOne<Hall>()

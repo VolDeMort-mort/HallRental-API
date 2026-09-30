@@ -9,18 +9,21 @@ public class GetBookingByIdQueryHandler : IRequestHandler<GetBookingByIdQuery, B
 {
     private readonly IBookingRepository _bookings;
     private readonly IHallRepository _halls;
+    private readonly ICurrentUser _currentUser;
 
-    public GetBookingByIdQueryHandler(IBookingRepository bookings, IHallRepository halls)
+    public GetBookingByIdQueryHandler(IBookingRepository bookings, IHallRepository halls, ICurrentUser currentUser)
     {
         _bookings = bookings;
         _halls = halls;
+        _currentUser = currentUser;
     }
 
     public async Task<BookingDto> Handle(GetBookingByIdQuery request, CancellationToken cancellationToken)
     {
         Booking? booking = await _bookings.GetByIdAsync(request.Id, cancellationToken);
 
-        if (booking == null)
+        // Someone else's booking looks exactly like a missing one, so its existence isn't revealed
+        if (booking == null || (booking.ClientId != _currentUser.Id && !_currentUser.IsAdmin))
             throw new NotFoundException("Booking was not found");
 
         // The hall may be deleted by now, but the booking still shows the hall it was made for

@@ -10,6 +10,7 @@ public record BookedServiceDto(Guid ServiceId, string Name, decimal Price);
 /// <param name="Id">Booking id.</param>
 /// <param name="HallId">Id of the booked hall.</param>
 /// <param name="HallName">Name of the booked hall.</param>
+/// <param name="ClientId">The person who made the booking.</param>
 /// <param name="Start">Start of the rent, hall's local time.</param>
 /// <param name="End">End of the rent, hall's local time.</param>
 /// <param name="Services">Picked services with their prices.</param>
@@ -20,6 +21,7 @@ public record BookingDto(
     Guid Id,
     Guid HallId,
     string HallName,
+    string ClientId,
     DateTime Start,
     DateTime End,
     IReadOnlyList<BookedServiceDto> Services,

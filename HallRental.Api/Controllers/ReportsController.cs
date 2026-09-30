@@ -1,11 +1,13 @@
+using HallRental.Api.Security;
 using HallRental.Application.Reports.HallsReport;
 using HallRental.Application.Reports.ServicesReport;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HallRental.Api.Controllers;
 
-/// <summary>Business reports for a period of days.</summary>
+/// <summary>Business reports for a period of days (admin only).</summary>
 /// <remarks>
 /// The period is [from, to): "from" is included, "to" is not, so a month is from=2030-09-01&amp;to=2030-10-01.
 /// A booking belongs to the period by its start. The period can't be longer than 366 days.
@@ -13,6 +15,9 @@ namespace HallRental.Api.Controllers;
 [ApiController]
 [Route("api/reports")]
 [Produces("application/json")]
+[Authorize(Roles = Roles.Admin)]
+[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+[ProducesResponseType(StatusCodes.Status403Forbidden)]
 public class ReportsController : ControllerBase
 {
     private readonly ISender _sender;
