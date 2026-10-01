@@ -3,6 +3,8 @@
 REST API for renting conference halls: hall management, free-hall search, bookings with time-of-day pricing
 and business reports.
 
+Business tasks and technical decisions: [DOCUMENTATION.md](DOCUMENTATION.md).
+
 ## Quick start
 
 Requirements: .NET SDK 8+, SQL Server LocalDB (or change `ConnectionStrings:Default` in `appsettings.Development.json`).
