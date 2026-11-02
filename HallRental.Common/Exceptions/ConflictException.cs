@@ -1,3 +1,3 @@
-namespace HallRental.Application.Exceptions;
+namespace HallRental.Common.Exceptions;
 
 public sealed class ConflictException(string message) : Exception(message);

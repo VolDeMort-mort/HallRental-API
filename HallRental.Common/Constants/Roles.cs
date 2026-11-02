@@ -1,4 +1,4 @@
-namespace HallRental.Api.Security;
+namespace HallRental.Common.Constants;
 
 public static class Roles
 {
