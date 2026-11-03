@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- XML comments become the Swagger documentation; 1591 = "missing comment" on members that don't need one -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>d631691e-c4e7-4cb0-9cf3-993c7c1a9201</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.31" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\HallRental.Bll\HallRental.Bll.csproj" />
+    <ProjectReference Include="..\HallRental.Bll.Common\HallRental.Bll.Common.csproj" />
+    <ProjectReference Include="..\HallRental.Utils\HallRental.Utils.csproj" />
+    <ProjectReference Include="..\HallRental.Dal.SqlRepositories\HallRental.Dal.SqlRepositories.csproj" />
+  </ItemGroup>
+
+  <!-- The DAL is a run-time dependency: it's copied to the output with its packages, but the compiler doesn't see it -->
+  <Target Name="HideDalFromCompiler" AfterTargets="FindReferenceAssembliesForReferences">
+    <ItemGroup>
+      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="'%(Filename)' == 'HallRental.Dal.SqlRepositories'" />
+    </ItemGroup>
+  </Target>
+
+</Project>

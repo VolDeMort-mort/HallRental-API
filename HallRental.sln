@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35818.85
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallRental.Api", "HallRental.Api\HallRental.Api.csproj", "{3B742F13-D913-4085-BF36-4A0D16FECE51}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallRental.Services.Web", "HallRental.Services.Web\HallRental.Services.Web.csproj", "{3B742F13-D913-4085-BF36-4A0D16FECE51}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HallRental.Infrastructure", "HallRental.Infrastructure\HallRental.Infrastructure.csproj", "{884380E1-07EA-4327-BFBF-BBFAA2FBE73E}"
 EndProject
