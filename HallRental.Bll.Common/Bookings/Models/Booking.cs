@@ -6,6 +6,8 @@ public class Booking
 
     public Guid HallId { get; set; }
 
+    public string HallName { get; set; } = string.Empty;
+
     public string ClientId { get; set; } = string.Empty;
 
     public DateTime Start { get; set; }
