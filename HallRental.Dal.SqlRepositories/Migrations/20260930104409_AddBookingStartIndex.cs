@@ -2,7 +2,7 @@
 
 #nullable disable
 
-namespace HallRental.Infrastructure.Persistence.Migrations
+namespace HallRental.Dal.SqlRepositories.Migrations
 {
     /// <inheritdoc />
     public partial class AddBookingStartIndex : Migration
