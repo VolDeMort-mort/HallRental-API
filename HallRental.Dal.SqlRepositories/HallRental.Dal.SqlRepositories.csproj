@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\HallRental.Bll\HallRental.Bll.csproj" />
+    <ProjectReference Include="..\HallRental.Bll.Common\HallRental.Bll.Common.csproj" />
+    <ProjectReference Include="..\HallRental.Utils\HallRental.Utils.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

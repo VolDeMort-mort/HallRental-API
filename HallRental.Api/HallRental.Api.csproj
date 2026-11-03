@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\HallRental.Application\HallRental.Application.csproj" />
     <ProjectReference Include="..\HallRental.Infrastructure\HallRental.Infrastructure.csproj" />
-    <ProjectReference Include="..\HallRental.Common\HallRental.Common.csproj" />
+    <ProjectReference Include="..\HallRental.Bll.Common\HallRental.Bll.Common.csproj" />
     <ProjectReference Include="..\HallRental.Utils\HallRental.Utils.csproj" />
   </ItemGroup>
 
