@@ -13,7 +13,7 @@ namespace HallRental.Bll.Bookings;
 
 public class BookingManager : IBookingManager
 {
-    private readonly IHallRepository _halls;
+    private readonly IHallManager _halls;
     private readonly IBookingRepository _bookings;
     private readonly IPricingManager _pricing;
     private readonly TimeProvider _timeProvider;
@@ -22,7 +22,7 @@ public class BookingManager : IBookingManager
     private readonly IValidator<NewBooking> _validator;
 
     public BookingManager(
-        IHallRepository halls,
+        IHallManager halls,
         IBookingRepository bookings,
         IPricingManager pricing,
         TimeProvider timeProvider,
@@ -46,9 +46,6 @@ public class BookingManager : IBookingManager
         var start = newBooking.Start;
         var end = start + newBooking.Duration;
         var hall = await _halls.GetByIdAsync(newBooking.HallId, cancellationToken);
-
-        if (hall == null)
-            throw new NotFoundException("Hall was not found");
 
         var isBusy = await _bookings.HasOverlapAsync(hall.Id, start, end, cancellationToken);
 

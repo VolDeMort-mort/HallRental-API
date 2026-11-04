@@ -18,7 +18,7 @@ public class BookingManagerTests
     private static readonly DateTime Now = new(2030, 1, 1, 9, 0, 0);
     private static readonly DateTime Start = new(2030, 9, 2, 10, 0, 0);
 
-    private readonly IHallRepository _halls = Substitute.For<IHallRepository>();
+    private readonly IHallManager _halls = Substitute.For<IHallManager>();
     private readonly IBookingRepository _bookings = Substitute.For<IBookingRepository>();
     private readonly IPricingManager _pricing = Substitute.For<IPricingManager>();
     private readonly IUnitOfWork _unitOfWork = Substitute.For<IUnitOfWork>();
@@ -83,6 +83,9 @@ public class BookingManagerTests
     {
         var newBooking = NewBooking();
         newBooking.HallId = Guid.NewGuid();
+
+        _halls.GetByIdAsync(newBooking.HallId, Arg.Any<CancellationToken>())
+        .Returns<Hall>(_ => throw new NotFoundException("Hall was not found"));
 
         await Assert.ThrowsAsync<NotFoundException>(() => _manager.CreateAsync(newBooking, CancellationToken.None));
         await _unitOfWork.DidNotReceive().SaveChangesAsync(Arg.Any<CancellationToken>());
