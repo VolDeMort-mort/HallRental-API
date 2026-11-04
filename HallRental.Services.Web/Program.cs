@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 new BllRegistrar().Register(builder.Services, builder.Configuration);
 new DalRegistrar().Register(builder.Services, builder.Configuration);
-builder.Services.AddAutoMapper(typeof(Program));
+builder.Services.AddAutoMapper(cfg => cfg.LicenseKey = builder.Configuration["AutoMapper:LicenseKey"], typeof(Program));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All));

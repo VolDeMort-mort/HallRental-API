@@ -32,7 +32,7 @@ public class DalRegistrar : IDependencyRegistrar
         services.AddScoped<IReportRepository, SqlReportRepository>();
         services.AddScoped<IDatabaseInitializer, DbInitializer>();
 
-        services.AddAutoMapper(typeof(DalMappingProfile));
+        services.AddAutoMapper(cfg => cfg.LicenseKey = configuration["AutoMapper:LicenseKey"], typeof(DalMappingProfile));
 
         services.AddSingleton(TimeProvider.System);
     }
