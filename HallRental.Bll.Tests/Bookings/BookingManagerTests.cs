@@ -1,6 +1,7 @@
 using HallRental.Bll.Bookings;
 using HallRental.Bll.Bookings.Validators;
 using HallRental.Bll.Common.Bookings;
+using HallRental.Bll.Common.Bookings.Exceptions;
 using HallRental.Bll.Common.Bookings.Models;
 using HallRental.Bll.Common.Halls;
 using HallRental.Bll.Common.Halls.Models;
@@ -101,14 +102,12 @@ public class BookingManagerTests
     }
 
     [Fact]
-    public async Task CreateAsync_StartInThePast_ThrowsBusinessRule()
+    public async Task CreateAsync_StartInThePast_ThrowsBookingInPast()
     {
         _timeProvider.SetUtcNow(new DateTimeOffset(Start.AddMinutes(1), TimeSpan.Zero));
 
-        var exception = await Assert.ThrowsAsync<BusinessRuleException>(
+        await Assert.ThrowsAsync<BookingInPastException>(
             () => _manager.CreateAsync(NewBooking(), CancellationToken.None));
-
-        Assert.Equal("A booking can't start in the past", exception.Message);
     }
 
     [Fact]

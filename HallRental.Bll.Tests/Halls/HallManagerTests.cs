@@ -1,4 +1,5 @@
 using HallRental.Bll.Common.Halls;
+using HallRental.Bll.Common.Halls.Exceptions;
 using HallRental.Bll.Common.Halls.Models;
 using HallRental.Bll.Common.Shared;
 using HallRental.Bll.Common.Shared.Exceptions;
@@ -65,11 +66,11 @@ public class HallManagerTests
     }
 
     [Fact]
-    public async Task CreateAsync_DuplicateServiceInAnyCase_ThrowsBusinessRule()
+    public async Task CreateAsync_DuplicateServiceInAnyCase_ThrowsDuplicateService()
     {
         var hall = NewHall(NewService("Звук"), NewService(" звук "));
 
-        await Assert.ThrowsAsync<BusinessRuleException>(() => _manager.CreateAsync(hall, CancellationToken.None));
+        await Assert.ThrowsAsync<DuplicateServiceException>(() => _manager.CreateAsync(hall, CancellationToken.None));
         await _halls.DidNotReceive().AddAsync(Arg.Any<Hall>(), Arg.Any<CancellationToken>());
     }
 

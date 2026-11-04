@@ -1,4 +1,4 @@
-using HallRental.Bll.Common.Shared.Exceptions;
+using HallRental.Bll.Common.Pricing.Exceptions;
 using HallRental.Bll.Pricing;
 using HallRental.Bll.Tests.Shared;
 
@@ -34,10 +34,8 @@ public class PricingPolicyTests
     [InlineData(22, 25)]
     public void CalculateRent_OutsideWorkingHours_Throws(int fromHour, int toHour)
     {
-        var exception = Assert.Throws<BusinessRuleException>(
+        Assert.Throws<OutsideWorkingHoursException>(
             () => _policy.CalculateRent(1000m, Day.AddHours(fromHour), Day.AddHours(toHour)));
-
-        Assert.Equal("The hall can be booked only during working hours", exception.Message);
     }
 
     [Fact]
@@ -49,8 +47,6 @@ public class PricingPolicyTests
             TestZones.Zone("Peak", 12, 14, 1.15m)
         };
 
-        var exception = Assert.Throws<BusinessRuleException>(() => new PricingPolicy(zones));
-
-        Assert.Contains("overlap", exception.Message);
+        Assert.Throws<InvalidPricingZonesException>(() => new PricingPolicy(zones));
     }
 }

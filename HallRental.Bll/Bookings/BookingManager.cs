@@ -8,6 +8,7 @@ using HallRental.Bll.Common.Shared;
 using HallRental.Bll.Common.Shared.Constants;
 using HallRental.Bll.Common.Shared.Exceptions;
 using HallRental.Bll.Shared;
+using HallRental.Bll.Common.Bookings.Exceptions;
 
 namespace HallRental.Bll.Bookings;
 
@@ -80,13 +81,13 @@ public class BookingManager : IBookingManager
     private static void EnsureCanBook(string clientId, Hall hall, DateTime start, DateTime now)
     {
         if (string.IsNullOrWhiteSpace(clientId) || clientId.Length > EntityLimits.ClientIdMaxLength)
-            throw new BusinessRuleException("A booking needs a valid client");
+            throw new InvalidClientException();
 
         if (!hall.IsActive)
-            throw new BusinessRuleException("A deleted hall can't be booked");
+            throw new HallNotActiveException();
 
         if (start < now)
-            throw new BusinessRuleException("A booking can't start in the past");
+            throw new BookingInPastException();
     }
 
     private static Booking CreateBooking(
@@ -123,7 +124,7 @@ public class BookingManager : IBookingManager
         var selected = hall.Services.Where(s => requestedIds.Contains(s.Id)).ToList();
 
         if (selected.Count != requestedIds.Count)
-            throw new BusinessRuleException("Some of the selected services are not available in this hall");
+            throw new ServiceNotAvailableException();
 
         return selected;
     }

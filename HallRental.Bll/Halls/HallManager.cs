@@ -1,5 +1,6 @@
 using FluentValidation;
 using HallRental.Bll.Common.Halls;
+using HallRental.Bll.Common.Halls.Exceptions;
 using HallRental.Bll.Common.Halls.Models;
 using HallRental.Bll.Common.Shared;
 using HallRental.Bll.Common.Shared.Exceptions;
@@ -121,7 +122,7 @@ public class HallManager : IHallManager
         var name = service.Name.Trim();
 
         if (hall.Services.Any(s => string.Equals(s.Name, name, StringComparison.OrdinalIgnoreCase)))
-            throw new BusinessRuleException($"Service {name} already in the service list");
+            throw new DuplicateServiceException(name);
 
         var newService = new Service
         {

@@ -1,5 +1,5 @@
 using HallRental.Bll.Common.Pricing.Models;
-using HallRental.Bll.Common.Shared.Exceptions;
+using HallRental.Bll.Common.Pricing.Exceptions;
 using HallRental.Utils;
 
 namespace HallRental.Bll.Pricing;
@@ -15,7 +15,7 @@ internal sealed class PricingPolicy
         _zones = zones.OrderBy(z => z.From).ToList();
 
         if (_zones.Count == 0)
-            throw new BusinessRuleException("At least one hours pricing zone is required");
+            throw new InvalidPricingZonesException("At least one hours pricing zone is required");
 
         EnsureNoOverlaps(_zones);
     }
@@ -43,7 +43,7 @@ internal sealed class PricingPolicy
 
         // Zones don't overlap, so this holds only when no minute is outside them
         if (coveredTime != periodEnd - periodStart)
-            throw new BusinessRuleException("The hall can be booked only during working hours");
+            throw new OutsideWorkingHoursException();
 
         return decimal.Round(rent, 2, MidpointRounding.AwayFromZero);
     }
@@ -57,7 +57,7 @@ internal sealed class PricingPolicy
             var current = sortedZones[i];
 
             if (previous.From < current.To && current.From < previous.To)
-                throw new BusinessRuleException(
+                throw new InvalidPricingZonesException(
                     $"Hours pricing zones {previous.Name} and {current.Name} overlap");
         }
     }
