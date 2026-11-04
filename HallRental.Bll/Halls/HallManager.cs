@@ -15,20 +15,22 @@ public class HallManager : IHallManager
     private readonly IUnitOfWork _unitOfWork;
     private readonly IValidator<Hall> _hallValidator;
     private readonly IValidator<Service> _serviceValidator;
-    private readonly AvailableHallsFilterValidator _filterValidator = new();
+    private readonly IValidator<AvailableHallsFilter> _filterValidator;
 
     public HallManager(
         IHallRepository halls,
         TimeProvider timeProvider,
         IUnitOfWork unitOfWork,
         IValidator<Hall> hallValidator,
-        IValidator<Service> serviceValidator)
+        IValidator<Service> serviceValidator,
+        IValidator<AvailableHallsFilter> filterValidator)
     {
         _halls = halls;
         _timeProvider = timeProvider;
         _unitOfWork = unitOfWork;
         _hallValidator = hallValidator;
         _serviceValidator = serviceValidator;
+        _filterValidator = filterValidator;
     }
 
     public async Task<Guid> CreateAsync(Hall hall, CancellationToken cancellationToken)

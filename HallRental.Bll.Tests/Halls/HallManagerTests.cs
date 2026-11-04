@@ -23,7 +23,7 @@ public class HallManagerTests
         _timeProvider.SetLocalTimeZone(TimeZoneInfo.Utc);
         _timeProvider.SetUtcNow(new DateTimeOffset(Now, TimeSpan.Zero));
 
-        _manager = new HallManager(_halls, _timeProvider, _unitOfWork, new HallValidator(), new ServiceValidator());
+        _manager = new HallManager(_halls, _timeProvider, _unitOfWork, new HallValidator(), new ServiceValidator(), new AvailableHallsFilterValidator());
     }
 
     private static Hall NewHall(params Service[] services) => new()

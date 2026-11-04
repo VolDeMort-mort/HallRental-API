@@ -1,4 +1,5 @@
 using FluentValidation;
+using HallRental.Bll.Common.Halls.Models;
 
 namespace HallRental.Bll.Halls.Validators;
 
