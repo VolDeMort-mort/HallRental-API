@@ -22,11 +22,4 @@
     <ProjectReference Include="..\HallRental.Dal.SqlRepositories\HallRental.Dal.SqlRepositories.csproj" />
   </ItemGroup>
 
-  <!-- The DAL is a run-time dependency: it's copied to the output with its packages, but the compiler doesn't see it -->
-  <Target Name="HideDalFromCompiler" AfterTargets="FindReferenceAssembliesForReferences">
-    <ItemGroup>
-      <ReferencePathWithRefAssemblies Remove="@(ReferencePathWithRefAssemblies)" Condition="'%(Filename)' == 'HallRental.Dal.SqlRepositories'" />
-    </ItemGroup>
-  </Target>
-
 </Project>

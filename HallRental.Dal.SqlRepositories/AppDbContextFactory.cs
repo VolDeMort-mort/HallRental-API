@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Design;
 
 namespace HallRental.Dal.SqlRepositories;
 
-// Only for "dotnet ef": the web project doesn't reference the DAL, so the tools build the context here
+// Lets "dotnet ef" run from the DAL project alone, without the web host
 internal class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
