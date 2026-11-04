@@ -3,15 +3,19 @@ using System.Text.Encodings.Web;
 using System.Text.Unicode;
 using System.Threading.RateLimiting;
 using HallRental.Bll.Common.Shared;
-using HallRental.Services.Web.Composition;
 using HallRental.Services.Web.ErrorHandling;
 using HallRental.Services.Web.Security;
 using Microsoft.OpenApi.Models;
+using HallRental.Bll;
+using HallRental.Dal.SqlRepositories;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddLayers(builder.Configuration, "HallRental.Bll", "HallRental.Dal.SqlRepositories");
+new BllRegistrar().Register(builder.Services, builder.Configuration);
+new DalRegistrar().Register(builder.Services, builder.Configuration);
+
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All));
 
