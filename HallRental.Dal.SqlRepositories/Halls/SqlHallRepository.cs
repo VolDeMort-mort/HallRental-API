@@ -1,6 +1,7 @@
+using AutoMapper;
 using HallRental.Bll.Common.Halls;
 using HallRental.Bll.Common.Halls.Models;
-using HallRental.Dal.SqlRepositories.Mapping;
+using HallRental.Dal.SqlRepositories.Halls.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HallRental.Dal.SqlRepositories.Halls;
@@ -8,15 +9,17 @@ namespace HallRental.Dal.SqlRepositories.Halls;
 public class SqlHallRepository : IHallRepository
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public SqlHallRepository(AppDbContext context)
+    public SqlHallRepository(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task AddAsync(Hall hall, CancellationToken cancellationToken)
     {
-        await _context.Halls.AddAsync(hall.ToEntity(), cancellationToken);
+        await _context.Halls.AddAsync(_mapper.Map<HallEntity>(hall), cancellationToken);
     }
 
     public async Task<Hall?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -26,7 +29,7 @@ public class SqlHallRepository : IHallRepository
             .Include(h => h.Services)
             .FirstOrDefaultAsync(h => h.Id == id, cancellationToken);
 
-        return hall?.ToModel();
+        return hall == null ? null : _mapper.Map<Hall>(hall);
     }
 
     public async Task<IReadOnlyList<Hall>> GetAvailableAsync(int minCapacity, DateTime start, DateTime end, CancellationToken cancellationToken)
@@ -41,7 +44,7 @@ public class SqlHallRepository : IHallRepository
             .OrderBy(h => h.Name)
             .ToListAsync(cancellationToken);
 
-        return halls.Select(h => h.ToModel()).ToList();
+        return _mapper.Map<List<Hall>>(halls);
     }
 
     public async Task UpdateAsync(Hall hall, CancellationToken cancellationToken)
@@ -56,7 +59,7 @@ public class SqlHallRepository : IHallRepository
 
     public async Task AddServiceAsync(Service service, CancellationToken cancellationToken)
     {
-        await _context.Services.AddAsync(service.ToEntity(), cancellationToken);
+        await _context.Services.AddAsync(_mapper.Map<ServiceEntity>(service), cancellationToken);
     }
 
     // Includes bookings going on right now

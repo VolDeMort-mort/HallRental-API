@@ -1,6 +1,7 @@
+using AutoMapper;
 using HallRental.Bll.Common.Bookings;
+using HallRental.Bll.Common.Bookings.Models;
 using HallRental.Services.Web.DTOs.Bookings;
-using HallRental.Services.Web.Mapping;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,10 +16,12 @@ namespace HallRental.Services.Web.Controllers;
 public class BookingsController : ControllerBase
 {
     private readonly IBookingManager _bookingManager;
+    private readonly IMapper _mapper;
 
-    public BookingsController(IBookingManager bookingManager)
+    public BookingsController(IBookingManager bookingManager, IMapper mapper)
     {
         _bookingManager = bookingManager;
+        _mapper = mapper;
     }
 
     /// <summary>Books a hall and returns the confirmation with the total cost.</summary>
@@ -29,8 +32,8 @@ public class BookingsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<BookingDto>> Create(CreateBookingDto request, CancellationToken cancellationToken)
     {
-        var booking = await _bookingManager.CreateAsync(request.ToModel(), cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = booking.Id }, booking.ToDto());
+        var booking = await _bookingManager.CreateAsync(_mapper.Map<NewBooking>(request), cancellationToken);
+        return CreatedAtAction(nameof(GetById), new { id = booking.Id }, _mapper.Map<BookingDto>(booking));
     }
 
     /// <summary>Returns a booking with its cost breakdown.</summary>
@@ -40,6 +43,6 @@ public class BookingsController : ControllerBase
     public async Task<ActionResult<BookingDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var booking = await _bookingManager.GetByIdAsync(id, cancellationToken);
-        return Ok(booking.ToDto());
+        return Ok(_mapper.Map<BookingDto>(booking));
     }
 }

@@ -1,6 +1,7 @@
+using AutoMapper;
 using HallRental.Bll.Common.Bookings;
 using HallRental.Bll.Common.Bookings.Models;
-using HallRental.Dal.SqlRepositories.Mapping;
+using HallRental.Dal.SqlRepositories.Bookings.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HallRental.Dal.SqlRepositories.Bookings;
@@ -8,15 +9,17 @@ namespace HallRental.Dal.SqlRepositories.Bookings;
 public class SqlBookingRepository : IBookingRepository
 {
     private readonly AppDbContext _context;
+    private readonly IMapper _mapper;
 
-    public SqlBookingRepository(AppDbContext context)
+    public SqlBookingRepository(AppDbContext context, IMapper mapper)
     {
         _context = context;
+        _mapper = mapper;
     }
 
     public async Task AddAsync(Booking booking, CancellationToken cancellationToken)
     {
-        await _context.Bookings.AddAsync(booking.ToEntity(), cancellationToken);
+        await _context.Bookings.AddAsync(_mapper.Map<BookingEntity>(booking), cancellationToken);
     }
 
     public async Task<Booking?> GetByIdAsync(Guid id, CancellationToken cancellationToken)
@@ -33,7 +36,10 @@ public class SqlBookingRepository : IBookingRepository
             .Select(h => h.Name)
             .FirstAsync(cancellationToken);
 
-        return booking.ToModel(hallName);
+        var model = _mapper.Map<Booking>(booking);
+        model.HallName = hallName;
+
+        return model;
     }
 
     // Same formula as the [Start, End) overlap: 10:00–12:00 and 12:00–14:00 don't overlap

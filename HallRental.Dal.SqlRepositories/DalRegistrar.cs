@@ -5,6 +5,7 @@ using HallRental.Bll.Common.Reports;
 using HallRental.Bll.Common.Shared;
 using HallRental.Dal.SqlRepositories.Bookings;
 using HallRental.Dal.SqlRepositories.Halls;
+using HallRental.Dal.SqlRepositories.Mapping;
 using HallRental.Dal.SqlRepositories.Pricing;
 using HallRental.Dal.SqlRepositories.Reports;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,8 @@ public class DalRegistrar : IDependencyRegistrar
         services.AddScoped<IHoursPricingRepository, SqlHoursPricingRepository>();
         services.AddScoped<IReportRepository, SqlReportRepository>();
         services.AddScoped<IDatabaseInitializer, DbInitializer>();
+
+        services.AddAutoMapper(typeof(DalMappingProfile));
 
         services.AddSingleton(TimeProvider.System);
     }

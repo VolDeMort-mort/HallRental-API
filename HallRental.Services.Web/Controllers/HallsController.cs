@@ -1,8 +1,9 @@
+using AutoMapper;
 using HallRental.Bll.Common.Halls;
+using HallRental.Bll.Common.Halls.Models;
 using HallRental.Bll.Common.Shared.Constants;
 using HallRental.Services.Web.DTOs;
 using HallRental.Services.Web.DTOs.Halls;
-using HallRental.Services.Web.Mapping;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,10 +19,12 @@ namespace HallRental.Services.Web.Controllers;
 public class HallsController : ControllerBase
 {
     private readonly IHallManager _hallManager;
+    private readonly IMapper _mapper;
 
-    public HallsController(IHallManager hallManager)
+    public HallsController(IHallManager hallManager, IMapper mapper)
     {
         _hallManager = hallManager;
+        _mapper = mapper;
     }
 
     /// <summary>Adds a conference hall with its services.</summary>
@@ -30,7 +33,7 @@ public class HallsController : ControllerBase
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreatedResponse>> Create(CreateHallDto request, CancellationToken cancellationToken)
     {
-        var id = await _hallManager.CreateAsync(request.ToModel(), cancellationToken);
+        var id = await _hallManager.CreateAsync(_mapper.Map<Hall>(request), cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id }, new CreatedResponse(id));
     }
 
@@ -42,7 +45,7 @@ public class HallsController : ControllerBase
     public async Task<ActionResult<HallDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         var hall = await _hallManager.GetByIdAsync(id, cancellationToken);
-        return Ok(hall.ToDto());
+        return Ok(_mapper.Map<HallDto>(hall));
     }
 
     /// <summary>Changes the name, capacity and price per hour; existing bookings keep their price.</summary>
@@ -52,7 +55,10 @@ public class HallsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(Guid id, UpdateHallDto request, CancellationToken cancellationToken)
     {
-        await _hallManager.UpdateAsync(request.ToModel(id), cancellationToken);
+        var hall = _mapper.Map<Hall>(request);
+        hall.Id = id;
+
+        await _hallManager.UpdateAsync(hall, cancellationToken);
         return NoContent();
     }
 
@@ -63,7 +69,7 @@ public class HallsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreatedResponse>> AddService(Guid hallId, CreateServiceDto request, CancellationToken cancellationToken)
     {
-        var serviceId = await _hallManager.AddServiceAsync(hallId, request.ToModel(), cancellationToken);
+        var serviceId = await _hallManager.AddServiceAsync(hallId, _mapper.Map<Service>(request), cancellationToken);
         return CreatedAtAction(nameof(GetById), new { id = hallId }, new CreatedResponse(serviceId));
     }
 
@@ -88,6 +94,6 @@ public class HallsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var halls = await _hallManager.GetAvailableAsync(filter.Start, filter.End, filter.MinCapacity, cancellationToken);
-        return Ok(halls.Select(h => h.ToDto()).ToList());
+        return Ok(_mapper.Map<List<HallDto>>(halls));
     }
 }

@@ -15,6 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 new BllRegistrar().Register(builder.Services, builder.Configuration);
 new DalRegistrar().Register(builder.Services, builder.Configuration);
+builder.Services.AddAutoMapper(typeof(Program));
 
 builder.Services.AddControllers()
     .AddJsonOptions(options => options.JsonSerializerOptions.Encoder = JavaScriptEncoder.Create(UnicodeRanges.All));
@@ -57,13 +58,11 @@ builder.Services.AddSwaggerGen(options =>
 
 var app = builder.Build();
 
-// First, so it catches exceptions from the whole pipeline
 app.UseExceptionHandler();
 app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
-    // In production migrations are a separate deployment step, not part of every start
     using (var scope = app.Services.CreateScope())
         await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>().InitializeAsync(CancellationToken.None);
 
