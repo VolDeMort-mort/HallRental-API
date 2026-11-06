@@ -1,52 +1,59 @@
+using System.Data;
 using HallRental.Bll.Common.Reports;
 using HallRental.Bll.Common.Reports.Models;
-using HallRental.Dal.SqlRepositories.Bookings.Entities;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace HallRental.Dal.SqlRepositories.Reports;
 
-// Read side for reports: the database groups and sums, only ready rows come back
 public class SqlReportRepository : IReportRepository
 {
-    private readonly AppDbContext _context;
+    private readonly SqlUnitOfWork _unitOfWork;
 
-    public SqlReportRepository(AppDbContext context)
+    public SqlReportRepository(SqlUnitOfWork unitOfWork)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<IReadOnlyList<HallReportRow>> GetHallRowsAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
-        var bookings = BookingsStartingIn(from, to);
+        var sql = SqlScripts.Get<SqlReportRepository>("GetHallRows");
 
-        // Built from the halls, so an idle hall shows up with zeros; TotalPrice isn't stored, so its parts are summed
-        return await _context.Halls
-            .IgnoreQueryFilters()
-            .Where(h => h.IsActive || bookings.Any(b => b.HallId == h.Id))
-            .OrderBy(h => h.Name)
-            .Select(h => new HallReportRow(
-                h.Id,
-                h.Name,
-                h.IsActive,
-                bookings.Count(b => b.HallId == h.Id),
-                bookings.Where(b => b.HallId == h.Id).Sum(b => EF.Functions.DateDiffMinute(b.Start, b.End)),
-                bookings.Where(b => b.HallId == h.Id).Sum(b => b.RentPrice),
-                bookings.Where(b => b.HallId == h.Id).Sum(b => b.ServicesPrice)))
-            .ToListAsync(cancellationToken);
+        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        AddPeriod(command, from, to);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        var rows = new List<HallReportRow>();
+        while (await reader.ReadAsync(cancellationToken))
+            rows.Add(new HallReportRow(
+                reader.GetGuid(0),
+                reader.GetString(1),
+                reader.GetBoolean(2),
+                reader.GetInt32(3),
+                reader.GetInt32(4),
+                reader.GetDecimal(5),
+                reader.GetDecimal(6)));
+
+        return rows;
     }
 
     public async Task<IReadOnlyList<ServiceReport>> GetServiceRowsAsync(DateTime from, DateTime to, CancellationToken cancellationToken)
     {
-        // The copies in the bookings: what was really sold, at the prices it was sold for
-        return await BookingsStartingIn(from, to)
-            .SelectMany(b => b.Services)
-            .GroupBy(s => s.Name)
-            .OrderByDescending(g => g.Count())
-            .ThenBy(g => g.Key)
-            .Select(g => new ServiceReport(g.Key, g.Count(), g.Sum(s => s.Price)))
-            .ToListAsync(cancellationToken);
+        var sql = SqlScripts.Get<SqlReportRepository>("GetServiceRows");
+
+        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        AddPeriod(command, from, to);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+
+        var rows = new List<ServiceReport>();
+        while (await reader.ReadAsync(cancellationToken))
+            rows.Add(new ServiceReport(reader.GetString(0), reader.GetInt32(1), reader.GetDecimal(2)));
+
+        return rows;
     }
 
-    private IQueryable<BookingEntity> BookingsStartingIn(DateTime from, DateTime to) =>
-        _context.Bookings.Where(b => b.Start >= from && b.Start < to);
+    private static void AddPeriod(SqlCommand command, DateTime from, DateTime to)
+    {
+        command.Parameters.Add("@From", SqlDbType.DateTime2).Value = from;
+        command.Parameters.Add("@To", SqlDbType.DateTime2).Value = to;
+    }
 }

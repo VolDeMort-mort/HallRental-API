@@ -63,7 +63,7 @@ app.UseStatusCodePages();
 
 if (app.Environment.IsDevelopment())
 {
-    using (var scope = app.Services.CreateScope())
+    await using (var scope = app.Services.CreateAsyncScope())
         await scope.ServiceProvider.GetRequiredService<IDatabaseInitializer>().InitializeAsync(CancellationToken.None);
 
     app.UseSwagger();
