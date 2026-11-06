@@ -1,31 +1,80 @@
+using System.Data;
 using HallRental.Bll.Common.Shared;
+using HallRental.Bll.Common.Shared.Constants;
+using HallRental.Dal.SqlRepositories.Halls;
 using HallRental.Dal.SqlRepositories.Halls.Entities;
 using HallRental.Dal.SqlRepositories.Pricing.Entities;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 namespace HallRental.Dal.SqlRepositories;
 
 internal class DbInitializer : IDatabaseInitializer
 {
-    private readonly AppDbContext _context;
+    private readonly SqlUnitOfWork _unitOfWork;
 
-    public DbInitializer(AppDbContext context)
+    public DbInitializer(SqlUnitOfWork unitOfWork)
     {
-        _context = context;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        await _context.Database.MigrateAsync(cancellationToken);
+        await using (var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<DbInitializer>("CreateSchema"), cancellationToken))
+            await command.ExecuteNonQueryAsync(cancellationToken);
 
-        // Deleted halls count too, otherwise seeding again would bring them back
-        if (!await _context.Halls.IgnoreQueryFilters().AnyAsync(cancellationToken))
-            _context.Halls.AddRange(CreateHalls());
+        if (!await ExistsAsync("HasHalls", cancellationToken))
+        {
+            foreach (var hall in CreateHalls())
+                await InsertHallAsync(hall, cancellationToken);
+        }
 
-        if (!await _context.HoursPricings.AnyAsync(cancellationToken))
-            _context.HoursPricings.AddRange(CreateHoursPricings());
+        if (!await ExistsAsync("HasHoursPricings", cancellationToken))
+        {
+            foreach (var zone in CreateHoursPricings())
+                await InsertZoneAsync(zone, cancellationToken);
+        }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<bool> ExistsAsync(string scriptName, CancellationToken cancellationToken)
+    {
+        await using var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<DbInitializer>(scriptName), cancellationToken);
+        return (int)(await command.ExecuteScalarAsync(cancellationToken))! == 1;
+    }
+
+    private async Task InsertHallAsync(HallEntity hall, CancellationToken cancellationToken)
+    {
+        await using (var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<SqlHallRepository>("Insert"), cancellationToken))
+        {
+            command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = hall.Id;
+            command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.HallNameMaxLength).Value = hall.Name;
+            command.Parameters.Add("@Capacity", SqlDbType.Int).Value = hall.Capacity;
+            command.Parameters.Add(new SqlParameter("@PricePerHour", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = hall.PricePerHour });
+            command.Parameters.Add("@IsActive", SqlDbType.Bit).Value = hall.IsActive;
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        foreach (var service in hall.Services)
+        {
+            await using var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<SqlHallRepository>("InsertService"), cancellationToken);
+            command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = service.Id;
+            command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = service.HallId;
+            command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.ServiceNameMaxLength).Value = service.Name;
+            command.Parameters.Add(new SqlParameter("@Price", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = service.Price });
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+    }
+
+    private async Task InsertZoneAsync(HoursPricingEntity zone, CancellationToken cancellationToken)
+    {
+        await using var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<DbInitializer>("InsertHoursPricing"), cancellationToken);
+        command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = zone.Id;
+        command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.HoursPricingNameMaxLength).Value = zone.Name;
+        command.Parameters.Add("@From", SqlDbType.Time).Value = zone.From.ToTimeSpan();
+        command.Parameters.Add("@To", SqlDbType.Time).Value = zone.To.ToTimeSpan();
+        command.Parameters.Add(new SqlParameter("@Multiplier", SqlDbType.Decimal) { Precision = 18, Scale = 2, Value = zone.Multiplier });
+        await command.ExecuteNonQueryAsync(cancellationToken);
     }
 
     private static IEnumerable<HallEntity> CreateHalls()
@@ -37,7 +86,6 @@ internal class DbInitializer : IDatabaseInitializer
             CreateHall("Зал C", 30, 1500m)
         };
 
-        // The assignment doesn't say which hall offers which service, so every hall offers all of them
         foreach (var hall in halls)
         {
             hall.Services.Add(CreateService(hall.Id, "Проєктор", 500m));
@@ -48,7 +96,6 @@ internal class DbInitializer : IDatabaseInitializer
         return halls;
     }
 
-    // Peak hours (12–14) lie inside the standard ones, so the standard zone is split around them
     private static IEnumerable<HoursPricingEntity> CreateHoursPricings() =>
     [
         CreateZone("Morning", new TimeOnly(6, 0), new TimeOnly(9, 0), 0.90m),
