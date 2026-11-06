@@ -19,7 +19,7 @@ internal class DbInitializer : IDatabaseInitializer
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
     {
-        await using (var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<DbInitializer>("CreateSchema"), cancellationToken))
+        await using (var command = await _unitOfWork.CreateTransactionalCommandAsync(SqlScripts.Get<DbInitializer>("CreateSchema"), cancellationToken))
             await command.ExecuteNonQueryAsync(cancellationToken);
 
         if (!await ExistsAsync("HasHalls", cancellationToken))
@@ -45,7 +45,7 @@ internal class DbInitializer : IDatabaseInitializer
 
     private async Task InsertHallAsync(HallEntity hall, CancellationToken cancellationToken)
     {
-        await using (var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<SqlHallRepository>("Insert"), cancellationToken))
+        await using (var command = await _unitOfWork.CreateTransactionalCommandAsync(SqlScripts.Get<SqlHallRepository>("Insert"), cancellationToken))
         {
             command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = hall.Id;
             command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.HallNameMaxLength).Value = hall.Name;
@@ -57,7 +57,7 @@ internal class DbInitializer : IDatabaseInitializer
 
         foreach (var service in hall.Services)
         {
-            await using var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<SqlHallRepository>("InsertService"), cancellationToken);
+            await using var command = await _unitOfWork.CreateTransactionalCommandAsync(SqlScripts.Get<SqlHallRepository>("InsertService"), cancellationToken);
             command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = service.Id;
             command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = service.HallId;
             command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.ServiceNameMaxLength).Value = service.Name;
@@ -68,7 +68,7 @@ internal class DbInitializer : IDatabaseInitializer
 
     private async Task InsertZoneAsync(HoursPricingEntity zone, CancellationToken cancellationToken)
     {
-        await using var command = await _unitOfWork.CreateCommandAsync(SqlScripts.Get<DbInitializer>("InsertHoursPricing"), cancellationToken);
+        await using var command = await _unitOfWork.CreateTransactionalCommandAsync(SqlScripts.Get<DbInitializer>("InsertHoursPricing"), cancellationToken);
         command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = zone.Id;
         command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.HoursPricingNameMaxLength).Value = zone.Name;
         command.Parameters.Add("@From", SqlDbType.Time).Value = zone.From.ToTimeSpan();

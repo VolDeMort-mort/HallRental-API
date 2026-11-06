@@ -24,7 +24,7 @@ public class SqlBookingRepository : IBookingRepository
         var entity = _mapper.Map<BookingEntity>(booking);
         var sql = SqlScripts.Get<SqlBookingRepository>("Insert");
 
-        await using (var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken))
+        await using (var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken))
         {
             command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = entity.Id;
             command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = entity.HallId;
@@ -39,7 +39,7 @@ public class SqlBookingRepository : IBookingRepository
 
         foreach (var service in entity.Services)
         {
-            await using var command = await _unitOfWork.CreateCommandAsync(serviceSql, cancellationToken);
+            await using var command = await _unitOfWork.CreateTransactionalCommandAsync(serviceSql, cancellationToken);
             command.Parameters.Add("@BookingId", SqlDbType.UniqueIdentifier).Value = entity.Id;
             command.Parameters.Add("@ServiceId", SqlDbType.UniqueIdentifier).Value = service.ServiceId;
             command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.ServiceNameMaxLength).Value = service.Name;
@@ -77,7 +77,7 @@ public class SqlBookingRepository : IBookingRepository
     {
         var sql = SqlScripts.Get<SqlBookingRepository>("HasOverlap");
 
-        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        await using var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken);
         command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = hallId;
         AddPeriod(command, start, end);
 

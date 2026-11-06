@@ -14,23 +14,17 @@ public class SqlUnitOfWork : IUnitOfWork, IAsyncDisposable
         _connectionString = connectionString;
     }
 
-    internal async Task<SqlCommand> CreateCommandAsync(string sql, CancellationToken cancellationToken)
-    {
-        if (_connection == null)
-        {
-            _connection = new SqlConnection(_connectionString);
-            await _connection.OpenAsync(cancellationToken);
-            _transaction = (SqlTransaction)await _connection.BeginTransactionAsync(cancellationToken);
-        }
+    internal Task<SqlCommand> CreateCommandAsync(string sql, CancellationToken cancellationToken) =>
+        CreateCommandAsync(sql, beginTransaction: false, cancellationToken);
 
-        return new SqlCommand(sql, _connection, _transaction);
-    }
+    internal Task<SqlCommand> CreateTransactionalCommandAsync(string sql, CancellationToken cancellationToken) =>
+        CreateCommandAsync(sql, beginTransaction: true, cancellationToken);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken)
     {
         if (_transaction != null)
         {
-            await _transaction.CommitAsync(cancellationToken);
+            await _transaction.CommitAsync(CancellationToken.None);
             _transaction = null;
         }
 
@@ -39,10 +33,29 @@ public class SqlUnitOfWork : IUnitOfWork, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
-        if (_transaction != null)
-            await _transaction.RollbackAsync();
+        try
+        {
+            if (_transaction != null)
+                await _transaction.RollbackAsync();
+        }
+        finally
+        {
+            if (_connection != null)
+                await _connection.DisposeAsync();
+        }
+    }
 
-        if (_connection != null)
-            await _connection.DisposeAsync();
+    private async Task<SqlCommand> CreateCommandAsync(string sql, bool beginTransaction, CancellationToken cancellationToken)
+    {
+        if (_connection == null)
+        {
+            _connection = new SqlConnection(_connectionString);
+            await _connection.OpenAsync(cancellationToken);
+        }
+
+        if (beginTransaction && _transaction == null)
+            _transaction = (SqlTransaction)await _connection.BeginTransactionAsync(cancellationToken);
+
+        return new SqlCommand(sql, _connection, _transaction);
     }
 }

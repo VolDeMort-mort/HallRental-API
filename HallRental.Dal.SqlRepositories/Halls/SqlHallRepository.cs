@@ -24,7 +24,7 @@ public class SqlHallRepository : IHallRepository
         var entity = _mapper.Map<HallEntity>(hall);
         var sql = SqlScripts.Get<SqlHallRepository>("Insert");
 
-        await using (var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken))
+        await using (var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken))
         {
             AddHallParameters(command, entity);
             await command.ExecuteNonQueryAsync(cancellationToken);
@@ -84,9 +84,11 @@ public class SqlHallRepository : IHallRepository
     {
         var sql = SqlScripts.Get<SqlHallRepository>("Update");
 
-        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        await using var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken);
         AddHallParameters(command, _mapper.Map<HallEntity>(hall));
-        await command.ExecuteNonQueryAsync(cancellationToken);
+
+        if (await command.ExecuteNonQueryAsync(cancellationToken) == 0)
+            throw new InvalidOperationException($"Hall '{hall.Id}' was not updated");
     }
 
     public Task AddServiceAsync(Service service, CancellationToken cancellationToken) =>
@@ -97,7 +99,7 @@ public class SqlHallRepository : IHallRepository
     {
         var sql = SqlScripts.Get<SqlHallRepository>("HasFutureBookings");
 
-        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        await using var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken);
         command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = hallId;
         command.Parameters.Add("@Now", SqlDbType.DateTime2).Value = now;
 
@@ -108,7 +110,7 @@ public class SqlHallRepository : IHallRepository
     {
         var sql = SqlScripts.Get<SqlHallRepository>("InsertService");
 
-        await using var command = await _unitOfWork.CreateCommandAsync(sql, cancellationToken);
+        await using var command = await _unitOfWork.CreateTransactionalCommandAsync(sql, cancellationToken);
         command.Parameters.Add("@Id", SqlDbType.UniqueIdentifier).Value = service.Id;
         command.Parameters.Add("@HallId", SqlDbType.UniqueIdentifier).Value = service.HallId;
         command.Parameters.Add("@Name", SqlDbType.NVarChar, EntityLimits.ServiceNameMaxLength).Value = service.Name;
